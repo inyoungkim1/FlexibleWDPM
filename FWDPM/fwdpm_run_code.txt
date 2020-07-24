@@ -1,0 +1,258 @@
+###########################################################
+##      Simulation Study Example                         ##
+###########################################################
+library(foreach)
+library(doParallel)
+cl <- makeCluster(38)
+registerDoParallel(cl)
+ptm <- proc.time()
+result1<- foreach(i=1:200, .combine='c') %dopar% {
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+y=simdatag(n=500,p=3,Q=27,method=2)  #method:0-t 1-dp 2-wdpmp 3-ewdp 4-wdpmg 5-wdpme 6-wdpmh#
+result1=fitdata(y,3,27,"gwdpmp",Nm=40000,trace=T) 
+result2=fitdata(y,3,27,"svwdpmp",Nm=50000,Nb=10000,trace=T)
+c(result1$MLR,result1$MLL,result2$MLL)
+}
+proc.time() - ptm
+###########################################################
+
+
+###########################################################
+##      Empirical Study  Example                         ##
+###########################################################
+temp=read.table("C:/Users/peng11/Desktop/APPLE.txt")
+temp=as.matrix(temp)
+y=100*log(temp[2:3001,2]/temp[1:3000,2])
+y=y[1001:3000]
+rm(list=c("temp"))
+Nm=40000
+library(foreach)
+library(doParallel)
+cl <- makeCluster(35)
+registerDoParallel(cl)
+ptm <- proc.time()
+result<- foreach(i=1:32, .combine='c') %dopar% {
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+if(i==1){
+temp=fitdata(y,3,27,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==2){
+temp=fitdata(y,4,40,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==3){
+temp=fitdata(y,4,50,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==4){
+temp=fitdata(y,4,81,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==5){
+temp=fitdata(y,5,40,"gwdpmp",Nm=Nm,trace=T)
+}
+if(i==6){
+temp=fitdata(y,5,50,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==7){
+temp=fitdata(y,5,80,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==8){
+temp=fitdata(y,5,100,"gwdpmp",Nm=Nm,trace=F)
+}
+if(i==9){
+temp=fitdata(y,3,27,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==10){
+temp=fitdata(y,4,40,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==11){
+temp=fitdata(y,4,50,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==12){
+temp=fitdata(y,4,81,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==13){
+temp=fitdata(y,5,40,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==14){
+temp=fitdata(y,5,50,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==15){
+temp=fitdata(y,5,80,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==16){
+temp=fitdata(y,5,100,"gewdpm",Nm=Nm,trace=F)
+}
+if(i==17){
+temp=fitdata(y,3,27,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==18){
+temp=fitdata(y,4,40,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==19){
+temp=fitdata(y,4,50,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==20){
+temp=fitdata(y,4,81,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==21){
+temp=fitdata(y,5,40,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==22){
+temp=fitdata(y,5,50,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==23){
+temp=fitdata(y,5,80,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==24){
+temp=fitdata(y,5,100,"gwdpmg",Nm=Nm,trace=F)
+}
+if(i==25){
+temp=fitdata(y,3,27,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==26){
+temp=fitdata(y,4,40,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==27){
+temp=fitdata(y,4,50,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==28){
+temp=fitdata(y,4,81,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==29){
+temp=fitdata(y,5,40,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==30){
+temp=fitdata(y,5,50,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==31){
+temp=fitdata(y,5,80,"gwdpme",Nm=Nm,trace=F)
+}
+if(i==32){
+temp=fitdata(y,5,100,"gwdpme",Nm=Nm,trace=F)
+}
+c(temp)
+}
+proc.time() - ptm
+###########################################################
+
+###########################################################
+##      Back Testing Example 1    simulation                       ##
+###########################################################
+n1=500            #length of prediction range#
+n=500             #fitting data sample size#
+library(foreach)
+library(doParallel)
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+n2=n1/10
+BTRmat=matrix(0,7,5)
+ptm <- proc.time()
+for(iter in 1:5){
+data=mixsim(n1,n)
+price=rep(100,n1+n+1)
+for(i in 1:(n1+n)){
+price[i+1]=price[i]*exp(data[i]/100)
+}
+check=cbind(price[n:(n+n1)],price[(n+1):(n+n1+1)])
+check=as.matrix(check)
+predv=rep(0,n2)
+BTRvec=rep(0,7)
+cl <- makeCluster(38)
+registerDoParallel(cl)
+result1<- foreach(i=1:n2, .combine='c') %dopar% {
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+loc1=n1+n-10*(n2-i+1)-n+1
+loc2=n1+n-10*(n2-i+1)
+y=data[loc1:loc2]
+result1=fitgarch(y,3,27,0,40000)  #method:0-t 1-dp 2-wdpmp 3-ewdp 4-wdpmg 5-wdpme 6-wdpmh#
+result2=fitgarch(y,3,27,1,40000)
+result3=fitgarch(y,3,27,2,40000)
+result4=fitgarch(y,3,27,3,40000)
+result5=fitgarch(y,3,27,4,40000)
+result6=fitgarch(y,3,27,5,40000)
+result7=fitgarch(y,3,27,6,40000)
+c(mean(result1$predictr),mean(result2$predictr),mean(result3$predictr),
+mean(result4$predictr),mean(result5$predictr),mean(result6$predictr),mean(result7$predictr))
+}
+stopCluster(cl)
+rm(list=c("cl"))
+gc()
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+for(i in 1:7){
+predv=result1[seq(i,343+i,7)]
+result=BTR(predv, check, n2, n,0)
+BTRvec[i]=result$btr
+}
+BTRmat[,iter]=BTRvec
+}
+proc.time() - ptm
+###########################################################
+
+
+###########################################################
+##     Back Testing Example 2   real application                         ##
+###########################################################
+n1=2000            #length of prediction range#
+n=300             #fitting data sample size#
+dataname="SP500.txt"   #specify name#
+
+ptm <- proc.time()
+n2=n1/10
+predv=rep(0,n2)
+library(foreach)
+library(doParallel)
+cl <- makeCluster(38)
+registerDoParallel(cl)
+result1<- foreach(i=1:n2, .combine='c') %dopar% {
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+y=read.table(dataname)
+y=as.matrix(y)
+y=y[,2]
+y=100*log(y[2:3001]/y[1:3000])
+loc1=3000-10*(n2-i+1)-n+1
+loc2=3000-10*(n2-i+1)
+y=y[loc1:loc2]
+result=fitgarch(y,p=4,Q=50,method=2,40000)
+c(list(pdr=result$predictr))
+}
+for(i in 1:n2){
+predv[i]=mean(result1[[i]])
+}
+rm(list=c("i","result1","cl"))
+check=read.table(dataname)
+check=as.matrix(check)
+check=check[(3000-n1):3000,]
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+result=BTR(predv, check, n2, n,holdstart=0)
+proc.time() - ptm
+####################################################
+
+
+
+###########################################################
+##      Cluster Visualization   Example                  ##
+###########################################################
+library(devtools)
+load_all("C:/Users/peng11/Desktop/garchsv")
+y=simdatag(500,3,27,method=2)   #method:0-t 1-dp 2-wdpmp 3-ewdp 4-wdpmg 5-wdpme 6-wdpmh#
+ptm <- proc.time()
+result=fitdata(y,p=3,Q=27,"gwdpmp",Nm=40000,trace=T)     
+proc.time() - ptm
+ptm <- proc.time()
+mumat=result$mumat
+xmin=-10   #we may need to modify the min and max in order to make it look better
+xmax=10
+ymax=5
+plot(density(mumat[1,]),ylim=c(0,ymax),xlim=c(xmin,xmax))
+for(i in 2:dim(mumat)[1]){
+if(min(mumat[,i])>-15){
+lines(density(mumat[i,]),ylim=c(0,ymax),xlim=c(xmin,xmax))
+}
+}
+proc.time() - ptm
+###########################################################

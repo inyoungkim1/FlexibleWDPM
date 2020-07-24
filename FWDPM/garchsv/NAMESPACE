@@ -1,0 +1,3 @@
+useDynLib(garchsv)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")
